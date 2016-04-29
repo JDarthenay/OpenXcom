@@ -1,0 +1,187 @@
+# This makefile is written for Windows cmd shell
+SHELL=C:\Windows\System32\cmd.exe
+
+# Path variable values, le lighter the better
+# PATH_BUILD_X86 is Path for 32-bits toolchain
+# PATH_BUILD_X64 is Path for 64-bits toolchain
+# If you have a bi-arch toolchain such as TDM-GCC-64,
+# you can give to PATH_BUILD_X86 and PATH_BUILD_X64 the same value
+# PATH_APPDEP must include any toolchain and AppDep.exe
+PATH=C:\Windows\system32;C:\Windows
+PATH_BUILD_X86=
+PATH_BUILD_X64=
+PATH_APPDEP=
+concatpath=$(if $1,$(if $2,$1;$2,$1),$2)
+
+# Directories and files
+PROG=OpenXcom
+
+BINDIR_DEBUG_X86=bin/x86/debug/
+BINDIR_RELEASE_X86=bin/x86/release/
+BINDIR_DEBUG_X64=bin/x64/debug/
+BINDIR_RELEASE_X64=bin/x64/release/
+OBJDIR_X86=obj/x86/
+OBJDIR_DEBUG_X86=$(OBJDIR_X86)debug/
+OBJDIR_RELEASE_X86=$(OBJDIR_X86)release/
+OBJDIR_X64=obj/x64/
+OBJDIR_DEBUG_X64=$(OBJDIR_X64)debug/
+OBJDIR_RELEASE_X64=$(OBJDIR_X64)release/
+SRCDIR=src/
+RESDIR=res/windows/
+SDLBINDIR_X86=../SDL-1.2/bin32/
+SDLBINDIR_X64=../SDL-1.2/bin64/
+
+RES=$(SRCDIR)$(PROG).rc $(SRCDIR)resource.h $(SRCDIR)version.h $(RESDIR)$(PROG).ico
+
+INCLUDES_SDL=../SDL-1.2/include
+LIBS_SDL_X86=../SDL-1.2/lib32
+LIBS_SDL_X64=../SDL-1.2/lib64
+INCLUDES_YAML=../yaml-cpp-0.5.3/include
+LIBS_YAML_X86=../yaml-cpp-0.5.3/lib32
+LIBS_YAML_X64=../yaml-cpp-0.5.3/lib64
+
+SRCS=$(wildcard src/*.cpp src/*/*.cpp src/*/*/*.cpp)
+
+vpath %.cpp $(sort $(dir $(SRCS)))
+
+OBJRES_X86=$(OBJDIR_X86)$(PROG)_res.o
+OBJRES_X64=$(OBJDIR_X64)$(PROG)_res.o
+OBJS_DEBUG_X86=$(patsubst %.cpp,$(OBJDIR_DEBUG_X86)%.o,$(notdir $(SRCS)))
+OBJS_RELEASE_X86=$(patsubst %.cpp,$(OBJDIR_RELEASE_X86)%.o,$(notdir $(SRCS)))
+OBJS_DEBUG_X64=$(patsubst %.cpp,$(OBJDIR_DEBUG_X64)%.o,$(notdir $(SRCS)))
+OBJS_RELEASE_X64=$(patsubst %.cpp,$(OBJDIR_RELEASE_X64)%.o,$(notdir $(SRCS)))
+
+BIN_DEBUG_X86=$(BINDIR_DEBUG_X86)$(PROG).exe
+BIN_RELEASE_X86=$(BINDIR_RELEASE_X86)$(PROG).exe
+BIN_DEBUG_X64=$(BINDIR_DEBUG_X64)$(PROG).exe
+BIN_RELEASE_X64=$(BINDIR_RELEASE_X64)$(PROG).exe
+
+# Compiler settings
+
+CXX=g++
+WINVER=0x0400
+CPPFLAGS=-D_WIN32_WINNT=$(WINVER)
+CXXFLAGS=-Wall -Wextra -std=gnu++11 -I$(INCLUDES_SDL) -I$(INCLUDES_YAML)
+CXXFLAGS_DEBUG=-O2 -g
+CXXFLAGS_RELEASE=-O3
+CXXFLAGS_X86=-m32
+CXXFLAGS_X64=-m64
+CXXDEPFLAGS=-Wall -Wextra -std=gnu++11 -MM
+LDFLAGS_X86=-mwindows -L$(LIBS_SDL_X86) -L$(LIBS_YAML_X86)
+LDFLAGS_X64=-mwindows -L$(LIBS_SDL_X64) -L$(LIBS_YAML_X64)
+LIBS=-lm -lshlwapi -lws2_32 -lopengl32 -lglu32 -lmingw32 -lpthread -static -static-libgcc -static-libstdc++ -lwinmm -lSDLmain -luser32 -lgdi32 -lwinmm -ldxguid -lDbgHelp -lyaml-cpp
+LIBS_X86=$(SDLBINDIR_X86)SDL.dll $(SDLBINDIR_X86)SDL_mixer.dll $(SDLBINDIR_X86)SDL_image.dll $(SDLBINDIR_X86)SDL_gfx.dll
+LIBS_X64=$(SDLBINDIR_X64)SDL.dll $(SDLBINDIR_X64)SDL_mixer.dll $(SDLBINDIR_X64)SDL_image.dll $(SDLBINDIR_X64)SDL_gfx.dll
+RC=windres
+RCFLAGS=
+RCFLAGS_X86=--target=pe-i386
+RCFLAGS_X64=--target=pe-x86-64
+
+# Rules
+
+.PHONY:all compile_x86 compile_x64 debug release debug_x86 debug_x64 release_x86 release_x64 mrproper clean clean_x86 clean_x64 clean_debug clean_release clean_debug_x86 clean_release_x86 clean_debug_x64 clean_release_x64 clean_exe depends
+
+all:compile_x86 compile_x64
+
+compile_x86:debug_x86 release_x86
+
+compile_x64:debug_x64 release_x64
+
+debug:debug_x86 debug_x64
+
+release:release_x86 release_x64
+
+debug_x86:$(BIN_DEBUG_X86)
+
+debug_x64:$(BIN_DEBUG_X64)
+
+release_x86:$(BIN_RELEASE_X86)
+
+release_x64:$(BIN_RELEASE_X64)
+
+# Linking rules
+
+$(BIN_DEBUG_X86) $(BIN_RELEASE_X86) $(OBJRES_X86) $(OBJS_DEBUG_X86) $(OBJS_RELEASE_X86):PATH:=$(call concatpath,$(PATH),$(PATH_BUILD_X86))
+$(BIN_DEBUG_X86) $(OBJS_DEBUG_X86):CXXFLAGS:=$(CXXFLAGS_X86) $(CXXFLAGS_DEBUG) $(CXXFLAGS)
+$(BIN_DEBUG_X86) $(BIN_RELEASE_X86):LDFLAGS:=$(LDFLAGS_X86)
+$(BIN_DEBUG_X86):$(OBJS_RES_X86) $(OBJS_DEBUG_X86)|$(BINDIR_DEBUG_X86)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $? -o $@ $(LIBS) $(LIBS_X86)
+
+$(BIN_RELEASE_X86) $(OBJS_RELEASE_X86):CXXFLAGS:=$(CXXFLAGS_X86) $(CXXFLAGS_RELEASE) $(CXXFLAGS)
+$(BIN_RELEASE_X86):$(OBJS_RES_X86) $(OBJS_RELEASE_X86)|$(BINDIR_RELEASE_X86)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $? -o $@ $(LIBS) $(LIBS_X86)
+
+$(BIN_DEBUG_X64) $(BIN_RELEASE_X64) $(OBJRES_X64) $(OBJS_DEBUG_X64) $(OBJS_RELEASE_X64):PATH:=$(call concatpath,$(PATH),$(PATH_BUILD_X64))
+$(BIN_DEBUG_X64) $(OBJS_DEBUG_X64):CXXFLAGS:=$(CXXFLAGS_X64) $(CXXFLAGS_DEBUG) $(CXXFLAGS)
+$(BIN_DEBUG_X64) $(BIN_RELEASE_X64):LDFLAGS:=$(LDFLAGS_X64)
+$(BIN_DEBUG_X64):$(OBJS_RES_X64) $(OBJS_DEBUG_X64)|$(BINDIR_DEBUG_X64)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $? -o $@ $(LIBS) $(LIBS_X64)
+
+$(BIN_RELEASE_X64) $(OBJS_RELEASE_X64):CXXFLAGS:=$(CXXFLAGS_X64) $(CXXFLAGS_RELEASE) $(CXXFLAGS)
+$(BIN_RELEASE_X64):$(OBJS_RES_X64) $(OBJS_RELEASE_X64)|$(BINDIR_RELEASE_X64)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $? -o $@ $(LIBS) $(LIBS_X64)
+
+# Compiling ressource objects rules
+
+$(OBJRES_X86):RCFLAGS+=$(RCFLAGS_X86)
+$(OBJRES_X64):RCFLAGS+=$(RCFLAGS_X64)
+$(OBJRES_X86):|$(OBJDIR_X86)
+$(OBJRES_X64):|$(OBJDIR_X64)
+$(OBJRES_X86) $(OBJRES_X64):$(RES)|$(OBJDIR_X86)
+	$(RC) $(RCFLAGS) -o $@ $<
+
+# Compiling objects rules
+
+$(OBJDIR_DEBUG_X86)%.o::%.cpp|$(OBJDIR_DEBUG_X86)
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
+
+$(OBJDIR_RELEASE_X86)%.o::%.cpp|$(OBJDIR_RELEASE_X86)
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
+
+$(OBJDIR_DEBUG_X64)%.o::%.cpp|$(OBJDIR_DEBUG_X64)
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
+
+$(OBJDIR_RELEASE_X64)%.o::%.cpp|$(OBJDIR_RELEASE_X64)
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
+
+# Creating object and binaries folders
+
+$(BINDIR_DEBUG_X86) $(BINDIR_RELEASE_X86) $(BINDIR_DEBUG_X64) $(BINDIR_RELEASE_X64) $(OBJDIR_X86) $(OBJDIR_X64) $(OBJDIR_DEBUG_X86) $(OBJDIR_RELEASE_X86) $(OBJDIR_DEBUG_X64) $(OBJDIR_RELEASE_X64):
+	mkdir $(subst /,\,$@)
+
+# Cleaning
+
+mrproper:clean clean_exe
+
+clean:clean_x86 clean_x64
+
+clean_x86:clean_debug_x86 clean_release_x86
+
+clean_x64:clean_debug_x64 clean_release_x64
+
+clean_debug:clean_debug_x86 clean_debug_x64
+
+clean_release:clean_release_x86 clean_release_x64
+
+clean_debug_x86:
+	for %%i in ($(subst /,\,$(OBJRES_X86) $(OBJS_DEBUG_X86))) do if exist "%%i" del "%%i"
+
+clean_release_x86:
+	for %%i in ($(subst /,\,$(OBJRES_X86) $(OBJS_RELEASE_X86))) do if exist "%%i" del "%%i"
+
+clean_debug_x64:
+	for %%i in ($(subst /,\,$(OBJRES_X64) $(OBJS_DEBUG_X64))) do if exist "%%i" del "%%i"
+
+clean_release_x64:
+	for %%i in ($(subst /,\,$(OBJRES_X64) $(OBJS_RELEASE_X64))) do if exist "%%i" del "%%i"
+
+clean_exe:
+	for %%i in ($(subst /,\,$(BIN_DEBUG_X86) $(BIN_RELEASE_X86) $(BIN_DEBUG_X64) $(BIN_RELEASE_X64))) do if exist "%%i" del "%%i"
+
+# Generating dependencies
+
+depends:PATH:=$(call concatpath,$(PATH),$(PATH_APPDEP))
+depends:
+	AppDep -n -r -l "# Dependencies" makefile
+	(for %%i in ($(SRCS:.cpp=)) do @$(CXX) $(CPPFLAGS) $(CXXDEPFLAGS) "%%i.cpp" -MT "$(OBJDIR_DEBUG_X86)%%~ni.o $(OBJDIR_RELEASE_X86)%%~ni.o $(OBJDIR_DEBUG_X64)%%~ni.o $(OBJDIR_RELEASE_X64)%%~ni.o")>> makefile
+# Dependencies
