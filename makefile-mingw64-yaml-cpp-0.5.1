@@ -122,13 +122,14 @@ $(BIN_RELEASE_X64) $(OBJS_RELEASE_X64):CXXFLAGS:=$(CXXFLAGS_X64) $(CXXFLAGS_RELE
 $(BIN_RELEASE_X64):$(OBJS_RES_X64) $(OBJS_RELEASE_X64)|$(BINDIR_RELEASE_X64)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) $? -o $@ $(LIBS) $(LIBS_X64)
 
-# Compiling ressource objects rules
+# Compiling resource objects rules
 
 $(OBJRES_X86):RCFLAGS+=$(RCFLAGS_X86)
+$(OBJRES_X86):$(RES)|$(OBJDIR_X86)
+	$(RC) $(RCFLAGS) -o $@ $<
+
 $(OBJRES_X64):RCFLAGS+=$(RCFLAGS_X64)
-$(OBJRES_X86):|$(OBJDIR_X86)
-$(OBJRES_X64):|$(OBJDIR_X64)
-$(OBJRES_X86) $(OBJRES_X64):$(RES)|$(OBJDIR_X86)
+$(OBJRES_X64):$(RES)|$(OBJDIR_X64)
 	$(RC) $(RCFLAGS) -o $@ $<
 
 # Compiling objects rules
