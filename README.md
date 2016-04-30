@@ -34,6 +34,7 @@ First line will give you the location of the gcc currently pointed by Path.
 
 * For 32-bits building use `-m32` option both for compiling and linking.
 * For 64-bits building use `-m64` option both for compiling and linking.
+
 TDM-GCC-64 defaults to `-m64`, but it does not hurt to add this option when
 building 64-bits objects and binaries. The options can be used with a mono-arch
 toolchain, they will simply leads to building error if you use one with the
@@ -63,6 +64,7 @@ Choose to install the following packages if they are not already selected:
 * make from Devel
 * mingw64-x86_64-gcc-g++ from Devel (4.9.x version rather than latter one)
 * accept all proposed dependencies
+
 Now run a Cygwin64 terminal, go the folder where you extracted SDL-1.2.15.zip,
 (if it is on disk D: go to `/cygfrive/d/<path>` where `<path>` is the directory
 path without disk letter and with backslashes replaced with slashes) and run:
