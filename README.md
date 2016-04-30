@@ -120,7 +120,7 @@ Switch to 32-bits toolchain and run:
 Move `libSDL_gfx.a` and `libSDL_gfx.dll.a` to `<project>\SDL-1.2\lib32`,
 move `SDL_gfx.dll` to `<project>\SDL-1.2\bin32` and delete `.o` files.
 
-Update `Makefile` for 32-bits building:
+Update `Makefile` for 64-bits building:
 
     CFLAGS = -O3 -m64 -march=athlon-xp -mmmx -msse -m3dnow -DBUILD_DLL -DWIN32 -I../SDL-1.2/include
     LIBS = ../SDL-1.2/bin32/SDL.dll
