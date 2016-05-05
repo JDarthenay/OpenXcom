@@ -1,0 +1,311 @@
+# This makefile is written for Windows cmd shell
+SHELL=C:\Windows\System32\cmd.exe
+
+# Path variable values, le lighter the better
+# PATH_BUILD_X86 is Path for 32-bits toolchain
+# PATH_BUILD_X64 is Path for 64-bits toolchain
+# If you have a bi-arch toolchain such as TDM-GCC-64,
+# you can give to PATH_BUILD_X86 and PATH_BUILD_X64 the same value
+# PATH_APPDEP must include any toolchain and AppDep.exe
+PATH=C:\Windows\system32;C:\Windows
+PATH_BUILD_X86=
+PATH_BUILD_X64=
+PATH_APPDEP=
+concatpath=$(if $1,$(if $2,$1;$2,$1),$2)
+
+# Directories and files
+PROG=OpenXcom
+
+BINDIR_DEBUG_X86=bin/x86/debug/
+BINDIR_RELEASE_X86=bin/x86/release/
+BINDIR_DEBUG_X64=bin/x64/debug/
+BINDIR_RELEASE_X64=bin/x64/release/
+OBJDIR_X86=obj/x86/
+OBJDIR_DEBUG_X86=$(OBJDIR_X86)debug/
+OBJDIR_RELEASE_X86=$(OBJDIR_X86)release/
+OBJDIR_X64=obj/x64/
+OBJDIR_DEBUG_X64=$(OBJDIR_X64)debug/
+OBJDIR_RELEASE_X64=$(OBJDIR_X64)release/
+SRCDIR=src/
+RESDIR=res/windows/
+SDLBINDIR_X86=../SDL-1.2/bin32/
+SDLBINDIR_X64=../SDL-1.2/bin64/
+
+RES=$(SRCDIR)$(PROG).rc $(SRCDIR)resource.h $(SRCDIR)version.h $(RESDIR)$(PROG).ico
+
+INCLUDES_SDL=../SDL-1.2/include
+LIBS_SDL_X86=../SDL-1.2/lib32
+LIBS_SDL_X64=../SDL-1.2/lib64
+INCLUDES_YAML_C++98=../yaml-cpp-0.5.1/include
+INCLUDES_BOOST_C++98=../boost_1_60_0
+INCLUDES_YAML_C++11=../yaml-cpp-0.5.3/include
+LIBS_YAML_X86_C++98=../yaml-cpp-0.5.1/lib32
+LIBS_YAML_X64_C++98=../yaml-cpp-0.5.1/lib64
+LIBS_YAML_X86_C++11=../yaml-cpp-0.5.3/lib32
+LIBS_YAML_X64_C++11=../yaml-cpp-0.5.3/lib64
+
+SRCS=$(wildcard src/*.cpp src/*/*.cpp src/*/*/*.cpp)
+
+vpath %.cpp $(sort $(dir $(SRCS)))
+
+OBJRES_X86=$(OBJDIR_X86)$(PROG)_res.o
+OBJRES_X64=$(OBJDIR_X64)$(PROG)_res.o
+OBJS_DEBUG_X86_C++98=$(patsubst %.cpp,$(OBJDIR_DEBUG_X86)%_c++98.o,$(notdir $(SRCS)))
+OBJS_DEBUG_X86_C++11=$(patsubst %.cpp,$(OBJDIR_DEBUG_X86)%.o,$(notdir $(SRCS)))
+OBJS_RELEASE_X86_C++98=$(patsubst %.cpp,$(OBJDIR_RELEASE_X86)%_c++98.o,$(notdir $(SRCS)))
+OBJS_RELEASE_X86_C++11=$(patsubst %.cpp,$(OBJDIR_RELEASE_X86)%.o,$(notdir $(SRCS)))
+OBJS_DEBUG_X64_C++98=$(patsubst %.cpp,$(OBJDIR_DEBUG_X64)%_c++98.o,$(notdir $(SRCS)))
+OBJS_DEBUG_X64_C++11=$(patsubst %.cpp,$(OBJDIR_DEBUG_X64)%.o,$(notdir $(SRCS)))
+OBJS_RELEASE_X64_C++98=$(patsubst %.cpp,$(OBJDIR_RELEASE_X64)%_c++98.o,$(notdir $(SRCS)))
+OBJS_RELEASE_X64_C++11=$(patsubst %.cpp,$(OBJDIR_RELEASE_X64)%.o,$(notdir $(SRCS)))
+
+BIN_DEBUG_X86_C++98=$(BINDIR_DEBUG_X86)$(PROG)_c++98.exe
+BIN_DEBUG_X86_C++11=$(BINDIR_DEBUG_X86)$(PROG).exe
+BIN_RELEASE_X86_C++98=$(BINDIR_RELEASE_X86)$(PROG)_c++98.exe
+BIN_RELEASE_X86_C++11=$(BINDIR_RELEASE_X86)$(PROG).exe
+BIN_DEBUG_X64_C++98=$(BINDIR_DEBUG_X64)$(PROG)_c++98.exe
+BIN_DEBUG_X64_C++11=$(BINDIR_DEBUG_X64)$(PROG).exe
+BIN_RELEASE_X64_C++98=$(BINDIR_RELEASE_X64)$(PROG)_c++98.exe
+BIN_RELEASE_X64_C++11=$(BINDIR_RELEASE_X64)$(PROG).exe
+
+# Compiler settings
+
+CXX=g++
+WINVER=0x0400
+CPPFLAGS=-D_WIN32_WINNT=$(WINVER)
+CXXFLAGS_C++98=-Wall -Wextra -std=gnu++98 -I$(INCLUDES_SDL) -I$(INCLUDES_YAML_C++98) -I$(INCLUDES_BOOST_C++98)
+CXXFLAGS_C++11=-Wall -Wextra -std=gnu++11 -I$(INCLUDES_SDL) -I$(INCLUDES_YAML_C++11)
+CXXFLAGS_DEBUG=-O2 -g
+CXXFLAGS_RELEASE=-O3
+CXXFLAGS_X86=-m32
+CXXFLAGS_X64=-m64
+CXXDEPFLAGS=-Wall -Wextra -std=gnu++11 -MM
+LDFLAGS_X86_C++98=-mwindows -L$(LIBS_SDL_X86) -L$(LIBS_YAML_X86_C++98)
+LDFLAGS_X64_C++98=-mwindows -L$(LIBS_SDL_X64) -L$(LIBS_YAML_X64_C++98)
+LDFLAGS_X86_C++11=-mwindows -L$(LIBS_SDL_X86) -L$(LIBS_YAML_X86_C++11)
+LDFLAGS_X64_C++11=-mwindows -L$(LIBS_SDL_X64) -L$(LIBS_YAML_X64_C++11)
+#LDFLAGS_C++98=-L$(LIBS_YAML_X86_C++98)
+LIBS=-lm -lshlwapi -lws2_32 -lopengl32 -lglu32 -lmingw32 -lpthread -static -static-libgcc -static-libstdc++ -lwinmm -lSDLmain -luser32 -lgdi32 -lwinmm -ldxguid -lDbgHelp -lyaml-cpp
+LIBS_X86=$(SDLBINDIR_X86)SDL.dll $(SDLBINDIR_X86)SDL_mixer.dll $(SDLBINDIR_X86)SDL_image.dll $(SDLBINDIR_X86)SDL_gfx.dll
+LIBS_X64=$(SDLBINDIR_X64)SDL.dll $(SDLBINDIR_X64)SDL_mixer.dll $(SDLBINDIR_X64)SDL_image.dll $(SDLBINDIR_X64)SDL_gfx.dll
+RC=windres
+RCFLAGS=
+RCFLAGS_X86=--target=pe-i386
+RCFLAGS_X64=--target=pe-x86-64
+
+# Rules
+
+.PHONY:default all compile_x86 compile_x64 debug debug_x86 debug_x64 release release_x86 release_x64 compile_c++98 compile_x86_c++98 compile_x64_c++98 debug_c++98 debug_x86_c++98 debug_x64_c++98 release_c++98 release_x86_c++98 release_x64_c++98 compile_c++11 compile_x86_c++11 compile_x64_c++11 debug_c++11 debug_x86_c++11 debug_x64_c++11 release_c++11 release_x86_c++11 release_x64_c++11 mrproper clean_exe clean clean_x86 clean_x64 clean_debug clean_debug_x86 clean_debug_x64 clean_release clean_release_x86 clean_release_x64 clean_c++98 clean_x86_c++98 clean_x64_c++98 clean_debug_c++98 clean_debug_x86_c++98 clean_debug_x64_c++98 clean_release_c++98 clean_release_x86_c++98 clean_release_x64_c++98 clean_c++11 clean_x86_c++11 clean_x64_c++11 clean_debug_c++11 clean_debug_x86_c++11 clean_debug_x64_c++11 clean_release_c++11 clean_release_x86_c++11 clean_release_x64_c++11 depends
+
+default:release_x64
+
+all:compile_x86 compile_x64
+
+compile_x86:debug_x86 release_x86
+
+compile_x64:debug_x64 release_x64
+
+debug:debug_x86 debug_x64
+
+debug_x86:debug_x86_c++98 debug_x86_c++11
+
+debug_x64:debug_x64_c++98 debug_x64_c++11
+
+release:release_x86 release_x64
+
+release_x86:release_x86_c++98 release_x86_c++11
+
+release_x64:release_x64_c++98 release_x64_c++11
+
+compile_c++98:compile_x86_c++98 compile_x64_c++98
+
+compile_x86_c++98:debug_x86_c++98 release_x86_c++98
+
+compile_x64_c++98:debug_x64_c++98 release_x64_c++98
+
+debug_c++98:debug_x86_c++98 debug_x64_c++98
+
+release_c++98:release_x86_c++98 release_x64_c++98
+
+compile_c++11:compile_x86_c++11 compile_x64_c++11
+
+compile_x86_c++11:debug_x86_c++11 release_x86_c++11
+
+compile_x64_c++11:debug_x64_c++11 release_x64_c++11
+
+debug_c++11:debug_x86_c++11 debug_x64_c++11
+
+release_c++11:release_x86_c++11 release_x64_c++11
+
+debug_x86_c++98:$(BIN_DEBUG_X86_C++98)
+
+debug_x64_c++98:$(BIN_DEBUG_X64_C++98)
+
+release_x86_c++98:$(BIN_RELEASE_X86_C++98)
+
+release_x64_c++98:$(BIN_RELEASE_X64_C++98)
+
+debug_x86_c++11:$(BIN_DEBUG_X86_C++11)
+
+debug_x64_c++11:$(BIN_DEBUG_X64_C++11)
+
+release_x86_c++11:$(BIN_RELEASE_X86_C++11)
+
+release_x64_c++11:$(BIN_RELEASE_X64_C++11)
+
+# Linking rules
+
+$(BIN_DEBUG_X86_C++98) $(BIN_RELEASE_X86_C++98) $(BIN_DEBUG_X86_C++11) $(BIN_RELEASE_X86_C++11) $(OBJRES_X86) $(OBJS_DEBUG_X86_C++98) $(OBJS_RELEASE_X86_C++98) $(OBJS_DEBUG_X86_C++11) $(OBJS_RELEASE_X86_C++11):PATH:=$(call concatpath,$(PATH),$(PATH_BUILD_X86))
+$(BIN_DEBUG_X86_C++98) $(OBJS_DEBUG_X86_C++98):CXXFLAGS:=$(CXXFLAGS_X86) $(CXXFLAGS_DEBUG) $(CXXFLAGS_C++98)
+$(BIN_DEBUG_X86_C++98) $(BIN_RELEASE_X86_C++98):LDFLAGS:=$(LDFLAGS_X86_C++98)
+$(BIN_DEBUG_X86_C++98):$(OBJRES_X86) $(OBJS_DEBUG_X86_C++98)|$(BINDIR_DEBUG_X86)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $^ -o $@ $(LIBS) $(LIBS_X86)
+
+$(BIN_DEBUG_X86_C++11) $(OBJS_DEBUG_X86_C++11):CXXFLAGS:=$(CXXFLAGS_X86) $(CXXFLAGS_DEBUG) $(CXXFLAGS_C++11)
+$(BIN_DEBUG_X86_C++11) $(BIN_RELEASE_X86_C++11):LDFLAGS:=$(LDFLAGS_X86_C++11)
+$(BIN_DEBUG_X86_C++11):$(OBJRES_X86) $(OBJS_DEBUG_X86_C++11)|$(BINDIR_DEBUG_X86)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $^ -o $@ $(LIBS) $(LIBS_X86)
+
+$(BIN_RELEASE_X86_C++98) $(OBJS_RELEASE_X86_C++98):CXXFLAGS:=$(CXXFLAGS_X86) $(CXXFLAGS_RELEASE) $(CXXFLAGS_C++98)
+$(BIN_RELEASE_X86_C++98):$(OBJRES_X86) $(OBJS_RELEASE_X86_C++98)|$(BINDIR_RELEASE_X86)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $^ -o $@ $(LIBS) $(LIBS_X86)
+
+$(BIN_RELEASE_X86_C++11) $(OBJS_RELEASE_X86_C++11):CXXFLAGS:=$(CXXFLAGS_X86) $(CXXFLAGS_RELEASE) $(CXXFLAGS_C++11)
+$(BIN_RELEASE_X86_C++11):$(OBJRES_X86) $(OBJS_RELEASE_X86_C++11)|$(BINDIR_RELEASE_X86)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $^ -o $@ $(LIBS) $(LIBS_X86)
+
+$(BIN_DEBUG_X64_C++98) $(BIN_RELEASE_X64_C++98) $(BIN_DEBUG_X64_C++11) $(BIN_RELEASE_X64_C++11) $(OBJRES_X64) $(OBJS_DEBUG_X64_C++98) $(OBJS_RELEASE_X64_C++98) $(OBJS_DEBUG_X64_C++11) $(OBJS_RELEASE_X64_C++11):PATH:=$(call concatpath,$(PATH),$(PATH_BUILD_X64))
+$(BIN_DEBUG_X64_C++98) $(OBJS_DEBUG_X64_C++98):CXXFLAGS:=$(CXXFLAGS_X64) $(CXXFLAGS_DEBUG) $(CXXFLAGS_C++98)
+$(BIN_DEBUG_X64_C++98) $(BIN_RELEASE_X64_C++98):LDFLAGS:=$(LDFLAGS_X64_C++98)
+$(BIN_DEBUG_X64_C++98):$(OBJRES_X64) $(OBJS_DEBUG_X64_C++98)|$(BINDIR_DEBUG_X64)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $^ -o $@ $(LIBS) $(LIBS_X64)
+
+$(BIN_DEBUG_X64_C++11) $(OBJS_DEBUG_X64_C++11):CXXFLAGS:=$(CXXFLAGS_X64) $(CXXFLAGS_DEBUG) $(CXXFLAGS_C++11)
+$(BIN_DEBUG_X64_C++11) $(BIN_RELEASE_X64_C++11):LDFLAGS:=$(LDFLAGS_X64_C++11)
+$(BIN_DEBUG_X64_C++11):$(OBJRES_X64) $(OBJS_DEBUG_X64_C++11)|$(BINDIR_DEBUG_X64)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $^ -o $@ $(LIBS) $(LIBS_X64)
+
+$(BIN_RELEASE_X64_C++98) $(OBJS_RELEASE_X64_C++98):CXXFLAGS:=$(CXXFLAGS_X64) $(CXXFLAGS_RELEASE) $(CXXFLAGS_C++98)
+$(BIN_RELEASE_X64_C++98):$(OBJRES_X64) $(OBJS_RELEASE_X64_C++98)|$(BINDIR_RELEASE_X64)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $^ -o $@ $(LIBS) $(LIBS_X64)
+
+$(BIN_RELEASE_X64_C++11) $(OBJS_RELEASE_X64_C++11):CXXFLAGS:=$(CXXFLAGS_X64) $(CXXFLAGS_RELEASE) $(CXXFLAGS_C++11)
+$(BIN_RELEASE_X64_C++11):$(OBJRES_X64) $(OBJS_RELEASE_X64_C++11)|$(BINDIR_RELEASE_X64)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $^ -o $@ $(LIBS) $(LIBS_X64)
+
+# Compiling resource objects rules
+
+$(OBJRES_X86):RCFLAGS+=$(RCFLAGS_X86)
+$(OBJRES_X86):$(RES)|$(OBJDIR_X86)
+	$(RC) $(RCFLAGS) -o $@ $<
+
+$(OBJRES_X64):RCFLAGS+=$(RCFLAGS_X64)
+$(OBJRES_X64):$(RES)|$(OBJDIR_X64)
+	$(RC) $(RCFLAGS) -o $@ $<
+
+# Compiling objects rules
+
+$(OBJDIR_DEBUG_X86)%_c++98.o::%.cpp|$(OBJDIR_DEBUG_X86)
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
+
+$(OBJDIR_DEBUG_X86)%.o::%.cpp|$(OBJDIR_DEBUG_X86)
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
+
+$(OBJDIR_RELEASE_X86)%_c++98.o::%.cpp|$(OBJDIR_RELEASE_X86)
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
+
+$(OBJDIR_RELEASE_X86)%.o::%.cpp|$(OBJDIR_RELEASE_X86)
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
+
+$(OBJDIR_DEBUG_X64)%_c++98.o::%.cpp|$(OBJDIR_DEBUG_X64)
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
+
+$(OBJDIR_DEBUG_X64)%.o::%.cpp|$(OBJDIR_DEBUG_X64)
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
+
+$(OBJDIR_RELEASE_X64)%_c++98.o::%.cpp|$(OBJDIR_RELEASE_X64)
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
+
+$(OBJDIR_RELEASE_X64)%.o::%.cpp|$(OBJDIR_RELEASE_X64)
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
+
+# Creating object and binaries folders
+
+$(BINDIR_DEBUG_X86) $(BINDIR_RELEASE_X86) $(BINDIR_DEBUG_X64) $(BINDIR_RELEASE_X64) $(OBJDIR_X86) $(OBJDIR_X64) $(OBJDIR_DEBUG_X86) $(OBJDIR_RELEASE_X86) $(OBJDIR_DEBUG_X64) $(OBJDIR_RELEASE_X64):
+	mkdir $(subst /,\,$@)
+
+# Cleaning
+
+mrproper:clean_exe clean
+
+clean_exe:
+	for %%i in ($(subst /,\,$(BIN_DEBUG_X86_C++98) $(BIN_RELEASE_X86_C++98) $(BIN_DEBUG_X64_C++98) $(BIN_RELEASE_X64_C++98) $(BIN_DEBUG_X86_C++11) $(BIN_RELEASE_X86_C++11) $(BIN_DEBUG_X64_C++11) $(BIN_RELEASE_X64_C++11))) do if exist "%%i" del "%%i"
+
+clean:clean_x86 clean_x64
+
+clean_x86:clean_debug_x86 clean_release_x86
+
+clean_x64:clean_debug_x64 clean_release_x64
+
+clean_debug:clean_debug_x86 clean_debug_x64
+
+clean_debug_x86:clean_debug_x86_c++98 clean_debug_x86_c++11
+
+clean_debug_x64:clean_debug_x64_c++98 clean_debug_x64_c++11
+
+clean_release:clean_release_x86 clean_release_x64
+
+clean_release_x86:clean_release_x86_c++98 clean_release_x86_c++11
+
+clean_release_x64:clean_release_x64_c++98 clean_release_x64_c++11
+
+clean_c++98:clean_x86_c++98 clean_x64_c++98
+
+clean_x86_c++98:clean_debug_x86_c++98 clean_release_x86_c++98
+
+clean_x64_c++98:clean_debug_x64_c++98 clean_release_x64_c++98
+
+clean_debug_c++98:clean_debug_x86_c++98 clean_debug_x64_c++98
+
+clean_release_c++98:clean_release_x86_c++98 clean_release_x64_c++98
+
+clean_c++11:clean_x86_c++11 clean_x64_c++11
+
+clean_x86_c++11:clean_debug_x86_c++11 clean_release_x86_c++11
+
+clean_x64_c++11:clean_debug_x64_c++11 clean_release_x64_c++11
+
+clean_debug_c++11:clean_debug_x86_c++11 clean_debug_x64_c++11
+
+clean_release_c++11:clean_release_x86_c++11 clean_release_x64_c++11
+
+clean_debug_x86_c++98:
+	for %%i in ($(subst /,\,$(OBJRES_X86) $(OBJS_DEBUG_X86_C++98))) do if exist "%%i" del "%%i"
+
+clean_debug_x64_c++98:
+	for %%i in ($(subst /,\,$(OBJRES_X64) $(OBJS_DEBUG_X64_C++98))) do if exist "%%i" del "%%i"
+
+clean_release_x86_c++98:
+	for %%i in ($(subst /,\,$(OBJRES_X86) $(OBJS_RELEASE_X86_C++98))) do if exist "%%i" del "%%i"
+
+clean_release_x64_c++98:
+	for %%i in ($(subst /,\,$(OBJRES_X64) $(OBJS_RELEASE_X64_C++98))) do if exist "%%i" del "%%i"
+
+clean_debug_x86_c++11:
+	for %%i in ($(subst /,\,$(OBJRES_X86) $(OBJS_DEBUG_X86_C++11))) do if exist "%%i" del "%%i"
+
+clean_debug_x64_c++11:
+	for %%i in ($(subst /,\,$(OBJRES_X64) $(OBJS_DEBUG_X64_C++11))) do if exist "%%i" del "%%i"
+
+clean_release_x86_c++11:
+	for %%i in ($(subst /,\,$(OBJRES_X86) $(OBJS_RELEASE_X86_C++11))) do if exist "%%i" del "%%i"
+
+clean_release_x64_c++11:
+	for %%i in ($(subst /,\,$(OBJRES_X64) $(OBJS_RELEASE_X64_C++11))) do if exist "%%i" del "%%i"
+
+# Generating dependencies
+
+depends:PATH:=$(call concatpath,$(PATH),$(PATH_APPDEP))
+depends:
+	AppDep -n -r -l "# Dependencies" makefile
+	(for %%i in ($(SRCS:.cpp=)) do @$(CXX) $(CPPFLAGS) $(CXXDEPFLAGS) "%%i.cpp" -MT "$(OBJDIR_DEBUG_X86)%%~ni_c++98.o $(OBJDIR_DEBUG_X86)%%~ni.o $(OBJDIR_RELEASE_X86)%%~ni_c++98.o $(OBJDIR_RELEASE_X86)%%~ni.o $(OBJDIR_DEBUG_X64)%%~ni_c++98.o $(OBJDIR_DEBUG_X64)%%~ni.o $(OBJDIR_RELEASE_X64)%%~ni_c++98.o $(OBJDIR_RELEASE_X64)%%~ni.o")>> makefile

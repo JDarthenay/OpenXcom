@@ -185,4 +185,3 @@ depends:PATH:=$(call concatpath,$(PATH),$(PATH_APPDEP))
 depends:
 	AppDep -n -r -l "# Dependencies" makefile
 	(for %%i in ($(SRCS:.cpp=)) do @$(CXX) $(CPPFLAGS) $(CXXDEPFLAGS) "%%i.cpp" -MT "$(OBJDIR_DEBUG_X86)%%~ni.o $(OBJDIR_RELEASE_X86)%%~ni.o $(OBJDIR_DEBUG_X64)%%~ni.o $(OBJDIR_RELEASE_X64)%%~ni.o")>> makefile
-# Dependencies

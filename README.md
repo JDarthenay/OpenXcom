@@ -137,9 +137,11 @@ Copy header files to `<project>\SDL-1.2\include`.
 
 ## yaml-cpp
 
-I was successfull to use either yaml-cpp 0.5.1 or yaml-cpp 0.5.3 but I had
-to build OpenXcom with c++11 standard when using yaml-cpp 0.5.3. Whatever you
-do, do not use yaml-cpp 0.5.2.
+If you want to build OpenXCom from Supsuper's repository, use yaml-cpp 0.5.1
+and stick to c++98 standard. If you want to build
+[Meridian's OXCE](https://github.com/MeridianOXC/OpenXcom/tree/oxce2.9-plus-proto)
+use yaml-cpp 0.5.3 with c++11 standard. Whatever you do, do not use
+yaml-cpp 0.5.2 for OpenXCom.
 
 ### CMake
 
@@ -202,7 +204,8 @@ Copy `include` folder into `<project>\yaml-cpp-0.5.3\`.
 
 ## Building OpenXcom
 
-Clone SupSuper's repository in `<project>\OpenXcom`.
+Clone SupSuper's repository in `<project>\OpenXcom` or any of its various forks
+which interests you.
 Get from this repository either `makefile-mingw64-yaml-cpp-0.5.1` or
 `makefile-mingw64-yaml-cpp-0.5.3`. Rename this file as
 `<project>\OpenXcom\makefile` and edit it.
