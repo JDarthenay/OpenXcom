@@ -5,7 +5,7 @@ For information about the OpenXcom project please refer to
 This repository is mainly about building OpenXcom with a MinGW-w64 toolchain,
 building with SDL 1.2, SDL image 1.2, SDL mixer 1.2 and SDL gfx DLLs and
 statically with yaml-cpp. Steps are provided for building both 32-bits and
-64-bits. You can used either [Msys2](http://msys2.github.io/)
+64-bits. You can use either [Msys2](http://msys2.github.io/)
 or [TDM-GCC-64](http://tdm-gcc.tdragon.net/) for instance.
 
 ## Bi-arch toolchain or two toolchains
