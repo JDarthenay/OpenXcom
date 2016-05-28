@@ -1346,8 +1346,8 @@ void AIModule::evaluateAIMode()
 		ambushOdds *= 0.6;
 	}
 
-	// no weapons? don't pick combat or ambush
-	if (!_melee && !_rifle && !_blaster)
+	// no weapons, not psychic? don't pick combat or ambush
+	if (!_melee && !_rifle && !_blaster && _unit->getBaseStats()->psiSkill == 0)
 	{
 		combatOdds = 0;
 		ambushOdds = 0;
@@ -1876,7 +1876,7 @@ bool AIModule::psiAction()
 
 	_aggroTarget = 0;
 		// don't let mind controlled soldiers mind control other soldiers.
-	if (_unit->getOriginalFaction() != _unit->getFaction()
+	if (_unit->getOriginalFaction() == _unit->getFaction()
 		// and we have the required 25 TUs and can still make it to cover
 		&& _unit->getTimeUnits() > _escapeTUs + cost
 		// and we didn't already do a psi action this round
